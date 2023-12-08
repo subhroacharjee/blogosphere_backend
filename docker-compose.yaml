@@ -1,0 +1,30 @@
+services:
+  main_db:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    volumes:
+      - ./pgData:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PASSWORD_FILE=${DB_PASSWORD_FILE}
+    secrets:
+      - postgres_pswd
+
+  app:
+    build: .
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    depends_on:
+      - main_db
+    secrets:
+      - postgres_pswd
+    env_file:
+      - .env
+
+secrets:
+  postgres_pswd:
+    file: ./secrets/postgres_pswd.txt
