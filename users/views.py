@@ -1,15 +1,17 @@
-from typing import cast
 from rest_framework.status import HTTP_200_OK
-from rest_framework.views import APIView, status
-from rest_framework import permissions
+from rest_framework.views import APIView
+from rest_framework import permissions, serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from users.models import User
+
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from users.serializer import LoginSerializer, UserSerializer
+from users.serializer import (
+    UserActivationSerializer,
+    UserReactivationSerializer,
+    UserSerializer,
+)
+from users.utils import create_token_and_send_verify_email
 
 
 class UserRegisterView(APIView):
@@ -18,11 +20,12 @@ class UserRegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        # call email service to create a verfication mail with verification id
+        user = serializer.save()
+        print(user)
+        create_token_and_send_verify_email(user)
         return Response(
             {
-                "data": serializer.data,
+                "data": "verification mail has been sent!",
             }
         )
 
@@ -38,7 +41,6 @@ class UserLoginView(TokenObtainPairView):
             raise InvalidToken(e.args[0])
 
         user = serializer.user
-        print(user)
         data = serializer.validated_data
         return Response(
             {
@@ -49,6 +51,29 @@ class UserLoginView(TokenObtainPairView):
             },
             HTTP_200_OK,
         )
+
+
+class UserActivationView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = UserActivationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            {
+                "data": "your account is activated!",
+            },
+            HTTP_200_OK,
+        )
+
+
+class UserResendActivationView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = UserReactivationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"data": "verification mail has been sent!"})
 
 
 class ProfileView(APIView):

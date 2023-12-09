@@ -22,9 +22,12 @@ services:
       - main_db
     secrets:
       - postgres_pswd
+      - email_pswd
     env_file:
       - .env
 
 secrets:
   postgres_pswd:
     file: ./secrets/postgres_pswd.txt
+  email_pswd:
+    file: ./secrets/email_pswd.txt

@@ -21,6 +21,14 @@ def get_debug():
     return True
 
 
+def get_email_password():
+    path = os.getenv("EMAIL_HOST_PASSWORD_FILE")
+    if path is None:
+        raise Exception("can't start the application, no email host password was found")
+    with open(path, "r") as file:
+        return file.readline().replace("\n", "")
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -159,3 +167,8 @@ SIMPLE_JWT = {
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",  # Default Django backend
 ]
+
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = get_email_password()
+EMAIL_PORT = os.getenv("EMAIL_PORT")

@@ -74,3 +74,22 @@ class User(AbstractBaseUser):
         return True
 
     pass
+
+
+class VerifyToken(models.Model):
+    TOKEN_TYPES = (
+        ("F", "forget_password"),
+        ("V", "verify_user"),
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    token = models.CharField(max_length=100, unique=True)
+    is_used = models.BooleanField(default=False)  # type: ignore
+    used_for = models.CharField(max_length=1, choices=TOKEN_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def __str__(self):
+        return self.token + " " + str(self.expires_at)  # type: ignore
