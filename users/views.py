@@ -1,13 +1,19 @@
-from rest_framework.status import HTTP_200_OK
+from typing import cast
+from rest_framework.exceptions import APIException
+from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 from rest_framework.views import APIView
-from rest_framework import permissions, serializers
+from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from rest_framework_simplejwt.views import TokenObtainPairView
+from users.models import User
 
 from users.serializer import (
     UserActivationSerializer,
+    UserChangePasswordSerializer,
+    UserForgetPasswordSerializer,
+    UserForgetVerifySerializer,
     UserReactivationSerializer,
     UserSerializer,
 )
@@ -74,6 +80,47 @@ class UserResendActivationView(APIView):
         serializer = UserReactivationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({"data": "verification mail has been sent!"})
+
+
+class UserForgotPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = UserForgetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"data": "verification mail has been sent!"})
+
+
+class UserForgetPasswordVerifyView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = UserForgetVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"data": "new password has been set. please login"})
+
+
+class UserChangePasswordView(APIView):
+    def post(self, request):
+        current_user = cast(User, request.user)
+        serializer = UserChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if not current_user.check_password(
+            serializer.validated_data.get("old_password")  # type: ignore
+        ):
+            raise APIException(
+                detail="Invalid old password", code=HTTP_401_UNAUTHORIZED
+            )
+
+        current_user.set_password(serializer.validated_data.get("new_password"))  # type: ignore
+        current_user.save()
+        return Response(
+            {
+                "data": "password has been set",
+            },
+            HTTP_200_OK,
+        )
 
 
 class ProfileView(APIView):

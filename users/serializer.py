@@ -1,5 +1,6 @@
 from typing import cast
 from uuid import uuid4
+from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now, timedelta
 from rest_framework import serializers
@@ -66,6 +67,7 @@ class UserActivationSerializer(serializers.Serializer):
                 Q(token__exact=validated_data.get("token"))  # type: ignore
                 & Q(expires_at__gt=now())
                 & Q(is_used__exact=False)
+                & Q(used_for__exact="V")
             )
 
         except Exception as e:
@@ -98,3 +100,69 @@ class UserReactivationSerializer(serializers.Serializer):
             raise APIException("Invalid input", code=HTTP_400_BAD_REQUEST)
 
         return validated_data
+
+
+class UserForgetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, attrs):
+        validated_data = super().validate(attrs)
+        print(validated_data)
+        try:
+            user = User.objects.get(
+                Q(is_active__exact=True) & Q(email__exact=validated_data.get("email"))
+            )
+            user.verifytoken_set.filter().update(is_used=True)
+            create_token_and_send_verify_email(user, "F")
+            pass
+        except Exception as e:
+            print(e)
+
+        return validated_data
+
+
+class UserForgetVerifySerializer(serializers.Serializer):
+    class Meta:
+        model = UserModel
+
+    token = serializers.UUIDField()
+    new_password = serializers.CharField(
+        max_length=100,
+        min_length=8,
+        validators=[validate_password],
+    )
+
+    def validate(self, attrs):
+        validated_data = super().validate(attrs)
+        try:
+            token = VerifyToken.objects.get(  # type: ignore
+                Q(token__exact=validated_data.get("token"))  # type: ignore
+                & Q(expires_at__gt=now())
+                & Q(is_used__exact=False)
+                & Q(used_for__exact="F")
+            )
+            pass
+        except Exception as e:
+            print(e)
+            raise serializers.ValidationError("invalid token")
+
+        token = cast(VerifyToken, token)
+        token.user.set_password(validated_data.get("new_password"))  # type: ignore
+        token.user.save()  # type: ignore
+        token.is_used = True  # type: ignore
+        token.save()
+
+        return validated_data
+
+
+class UserChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(
+        max_length=100,
+        min_length=8,
+    )
+
+    new_password = serializers.CharField(
+        max_length=100,
+        min_length=8,
+        validators=[validate_password],
+    )

@@ -10,12 +10,12 @@ from users.models import User, VerifyToken
 logger = logging.getLogger(__name__)
 
 
-def create_token_and_send_verify_email(user: User):
+def create_token_and_send_verify_email(user: User, used_for="V"):
     token = str(uuid4())
     new_token = VerifyToken(
         user=user,
         token=token,
-        used_for="V",
+        used_for=used_for,
         expires_at=timezone.now() + timedelta(hours=1),
     )
     new_token.save()
