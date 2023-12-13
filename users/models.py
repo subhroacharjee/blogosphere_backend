@@ -1,7 +1,5 @@
-from urllib import parse
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
-from django.template.defaultfilters import slugify
 
 
 class UserManager(BaseUserManager):
@@ -35,10 +33,6 @@ class User(AbstractBaseUser):
     username = models.CharField(max_length=30, null=False, unique=True)
     password = models.CharField(max_length=100, null=False)
 
-    slug = models.SlugField(max_length=100, null=True)
-    avatar = models.URLField(max_length=100, null=True)
-    description = models.TextField(null=True)
-
     is_active = models.BooleanField(default=False)  # type: ignore
     is_admin = models.BooleanField(default=False)  # type: ignore
     is_staff = models.BooleanField(default=True)  # type: ignore
@@ -57,21 +51,19 @@ class User(AbstractBaseUser):
     def __str__(self):
         return self.email
 
-    def save(self, *args, **kwargs):
-        if self.slug is None:
-            self.slug = slugify(self.username)
-
-        if self.avatar is None:
-            username = f"{self.username}"
-            self.avatar = f"https://ui-avatars.com/api/?name={parse.quote(username)}"
-
-        super().save(args, kwargs)
-
     def has_perm(self, perm, obj=None):
         return self.is_admin
 
     def has_module_perm(self, app_label):
         return True
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            self.profile.slug = None  # type: ignore
+            if "ui-avatars.com/api/" in self.profile.avatar:  # type: ignore
+                self.avatar = None
+            self.profile.save()  # type: ignore
+        return super().save(*args, **kwargs)
 
     pass
 

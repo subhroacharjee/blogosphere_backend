@@ -1,12 +1,13 @@
 from typing import cast
-from uuid import uuid4
-from django.contrib.auth.password_validation import validate_password
-from django.db.models import Q, QuerySet
-from django.utils.timezone import now, timedelta
-from rest_framework import serializers
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.db.models import Q
+from django.utils.timezone import now
+from rest_framework import serializers
 from rest_framework.exceptions import APIException
 from rest_framework.status import HTTP_400_BAD_REQUEST
+from user_profile import serializer
 
 from users.models import User, VerifyToken
 from users.utils import create_token_and_send_verify_email
@@ -20,9 +21,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             "email",
             "username",
-            "slug",
-            "avatar",
-            "description",
             "created_at",
             "password",
         )
@@ -37,22 +35,6 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         else:
             raise Exception("password cant be None")
-        instance.save()
-        return instance
-
-    def update(self, instance: User, validated_data):
-        new_password = validated_data.pop("password", None)
-        username = validated_data.get("username", None)
-        instance.avatar = validated_data.get("avatar", instance.avatar)
-        instance.description = validated_data.get("description", instance.description)
-
-        if new_password:
-            instance.set_password(new_password)
-
-        if username:
-            instance.username = username
-            instance.slug = None  # type: ignore
-
         instance.save()
         return instance
 
@@ -166,3 +148,30 @@ class UserChangePasswordSerializer(serializers.Serializer):
         min_length=8,
         validators=[validate_password],
     )
+
+
+class UserBasicChangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        fields = (
+            "username",
+            "email",
+        )
+        extra_kwargs = {
+            "username": {"required": False, "allow_blank": True},
+            "email": {"required": False, "allow_blank": True},
+        }
+
+    def update(self, instance: User, validated_data):
+        username = validated_data.get("username", None)
+
+        email = validated_data.get("email", None)
+
+        if username:
+            instance.username = username
+
+        if email:
+            instance.email = email
+
+        instance.save()
+        return instance

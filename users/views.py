@@ -7,10 +7,12 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from rest_framework_simplejwt.views import TokenObtainPairView
+from user_profile.models import Profile
 from users.models import User
 
 from users.serializer import (
     UserActivationSerializer,
+    UserBasicChangeSerializer,
     UserChangePasswordSerializer,
     UserForgetPasswordSerializer,
     UserForgetVerifySerializer,
@@ -27,7 +29,8 @@ class UserRegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        print(user)
+        user.profile = Profile()
+        user.profile.save()
         create_token_and_send_verify_email(user)
         return Response(
             {
@@ -123,15 +126,13 @@ class UserChangePasswordView(APIView):
         )
 
 
-class ProfileView(APIView):
-    def get(self, request):
-        user = request.user
+class UserChangeBasicDetails(APIView):
+    def post(self, request):
+        serializer = UserBasicChangeSerializer(request.user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(
             {
-                "data": {
-                    "user": UserSerializer(user).data,
-                }
+                "data": serializer.data,
             }
         )
-
-    pass
