@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
     email = models.EmailField(null=False, unique=True)
-    username = models.CharField(max_length=30, null=False, unique=True)
+    username = models.CharField(max_length=100, null=False, unique=True)
     password = models.CharField(max_length=100, null=False)
 
     is_active = models.BooleanField(default=False)  # type: ignore

@@ -2,12 +2,12 @@ from typing import cast
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
 from rest_framework.status import HTTP_400_BAD_REQUEST
-from user_profile import serializer
 
 from users.models import User, VerifyToken
 from users.utils import create_token_and_send_verify_email
@@ -16,6 +16,11 @@ UserModel = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        validators=[validate_password],
+        write_only=True,
+    )
+
     class Meta:
         model = UserModel
         fields = (
@@ -52,9 +57,8 @@ class UserActivationSerializer(serializers.Serializer):
                 & Q(used_for__exact="V")
             )
 
-        except Exception as e:
-            print(e)
-            raise APIException("Invalid token", code=HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError("invalid token")
 
         token = cast(VerifyToken, token)
         token.user.is_active = True  # type: ignore

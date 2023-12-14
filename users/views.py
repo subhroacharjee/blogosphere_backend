@@ -1,4 +1,5 @@
 from typing import cast
+from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 from rest_framework.views import APIView
@@ -35,7 +36,8 @@ class UserRegisterView(APIView):
         return Response(
             {
                 "data": "verification mail has been sent!",
-            }
+            },
+            status.HTTP_201_CREATED,
         )
 
 

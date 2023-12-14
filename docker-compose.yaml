@@ -20,11 +20,24 @@ services:
       - .:/app
     depends_on:
       - main_db
+      - test
     secrets:
       - postgres_pswd
       - email_pswd
     env_file:
       - .env
+  test:
+    build: 
+      context: .
+      dockerfile: Dockerfile-test
+    volumes:
+      - .:/app
+    secrets:
+      - postgres_pswd
+      - email_pswd
+    env_file:
+      - .env
+
 
 secrets:
   postgres_pswd:
