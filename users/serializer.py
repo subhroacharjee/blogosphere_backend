@@ -83,7 +83,6 @@ class UserReactivationSerializer(serializers.Serializer):
             pass
         except Exception as e:
             print(e)
-            raise APIException("Invalid input", code=HTTP_400_BAD_REQUEST)
 
         return validated_data
 
@@ -103,6 +102,7 @@ class UserForgetPasswordSerializer(serializers.Serializer):
             pass
         except Exception as e:
             print(e)
+            raise serializers.ValidationError("no such user found!")
 
         return validated_data
 

@@ -14,17 +14,49 @@ from users.views import (
 
 
 urlpatterns = [
-    path("login/", UserLoginView.as_view(), name="login"),
-    path("register/", UserRegisterView.as_view(), name="register"),
-    path("activate/", UserActivationView.as_view(), name="activate_user"),
-    path("refresh/", TokenRefreshView.as_view(), name="refresh"),
-    path("activate/again/", UserResendActivationView.as_view(), name="refresh_again"),
-    path("forget/", UserForgotPasswordView.as_view(), name="forget_password"),
+    path(
+        "login/",
+        UserLoginView.as_view(),
+        name="login",
+    ),
+    path(
+        "register/",
+        UserRegisterView.as_view(),
+        name="register",
+    ),
+    path(
+        "activate/",
+        UserActivationView.as_view(),
+        name="activate_user",
+    ),
+    path(
+        "refresh/",
+        TokenRefreshView.as_view(),
+        name="refresh",
+    ),
+    path(
+        "activate/again/",
+        UserResendActivationView.as_view(),
+        name="refresh_again",
+    ),
+    path(
+        "forget/",
+        UserForgotPasswordView.as_view(),
+        name="forget_password",
+    ),
     path(
         "forget/verify/",
         UserForgetPasswordVerifyView.as_view(),
         name="forget_password_verify",
     ),
-    path("change/password/", UserChangePasswordView.as_view(), name="change_password"),
-    path("change/data/", UserChangeBasicDetails.as_view(), name="change_data"),
+    path(
+        "change/password/",
+        UserChangePasswordView.as_view(),
+        name="change_password",
+    ),
+    path(
+        "change/data/",
+        UserChangeBasicDetails.as_view(),
+        name="change_data",
+    ),
 ]

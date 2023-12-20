@@ -6,6 +6,7 @@ from rest_framework.test import APITestCase
 from user_profile.models import Profile
 
 from users.models import User, VerifyToken
+from users.tests.utils import create_user_data
 
 
 class TestUserRegisterView(APITestCase):
@@ -94,13 +95,10 @@ class TestUserRegisterView(APITestCase):
         pass
 
     def test_verification_code_created_when_registration_successful(self):
+        user_data = create_user_data()
         response = self.client.post(
             self.url,
-            {
-                "username": "valid_user_name",
-                "email": "some@email.com",
-                "password": "Should_be_valid_password_123",
-            },
+            user_data,
         )
         self.assertEqual(
             response.status_code,  # type: ignore
@@ -109,7 +107,7 @@ class TestUserRegisterView(APITestCase):
         )
 
         verify_token = VerifyToken.objects.filter(  # type: ignore
-            user__username="valid_user_name",
+            user__username=user_data["username"],
             used_for="V",
         ).first()
         self.assertIsNot(verify_token, None)

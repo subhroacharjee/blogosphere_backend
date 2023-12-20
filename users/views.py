@@ -114,8 +114,11 @@ class UserChangePasswordView(APIView):
         if not current_user.check_password(
             serializer.validated_data.get("old_password")  # type: ignore
         ):
-            raise APIException(
-                detail="Invalid old password", code=HTTP_401_UNAUTHORIZED
+            return Response(
+                {
+                    "error": "invalid old password",
+                },
+                status.HTTP_401_UNAUTHORIZED,
             )
 
         current_user.set_password(serializer.validated_data.get("new_password"))  # type: ignore
