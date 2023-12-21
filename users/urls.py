@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from users.views import (
     UserActivationView,
-    UserChangeBasicDetails,
+    UserChangeBasicDetailsView,
     UserChangePasswordView,
     UserForgotPasswordView,
     UserLoginView,
@@ -56,7 +56,7 @@ urlpatterns = [
     ),
     path(
         "change/data/",
-        UserChangeBasicDetails.as_view(),
+        UserChangeBasicDetailsView.as_view(),
         name="change_data",
     ),
 ]

@@ -131,7 +131,7 @@ class UserChangePasswordView(APIView):
         )
 
 
-class UserChangeBasicDetails(APIView):
+class UserChangeBasicDetailsView(APIView):
     def post(self, request):
         serializer = UserBasicChangeSerializer(request.user, data=request.data)
         serializer.is_valid(raise_exception=True)
